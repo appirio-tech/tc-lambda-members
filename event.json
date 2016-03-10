@@ -1,0 +1,11 @@
+{
+  "operation": "search",
+  "body": {
+    "param": {
+      "query": {
+        "match": { "handle.phrase": "albert" }
+      }
+    },
+    "method": "get"
+  }
+}

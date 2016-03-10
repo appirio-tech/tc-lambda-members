@@ -1,2 +1,3 @@
-# tc-lambda-member
-Member search endpoint
+# tc-lambda-members
+Lambda function to handle member search
+

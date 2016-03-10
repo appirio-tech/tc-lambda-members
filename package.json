@@ -1,0 +1,24 @@
+{
+  "name": "tc-lambda-members",
+  "version": "1.0.0",
+  "description": "lambda function for member search",
+  "main": "index.js",
+  "dependencies": {
+    "elasticsearch": "^10.1.3",
+    "http-aws-es": "^1.1.3"
+  },
+  "devDependencies": {
+    "node-lambda": "^0.7.1",
+    "aws-sdk": "^2.2.41",
+    "dynamodb-doc": "^1.0.0"
+  },
+  "bundledDependencies": [
+    "http-aws-es",
+    "elasticsearch"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
