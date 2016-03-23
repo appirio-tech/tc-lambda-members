@@ -29,6 +29,7 @@ env:
   matrix:
     - CXX=g++-4.8
   global:
+    - TEMP='blah'
     # DEV_MEMBER_ES_HOST
     #- secure: 
 
