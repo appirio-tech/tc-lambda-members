@@ -1,11 +1,17 @@
 {
-  "operation": "search",
-  "body": {
-    "param": {
-      "query": {
-        "match": { "handle.phrase": "albert" }
-      }
-    },
-    "method": "get"
+  "stage": "test-invoke-stage",
+  "requestId": "test-invoke-request",
+  "resourcePath": "/v3/members/_search",
+  "resourceId": "dxtdde",
+  "httpMethod": "GET",
+  "sourceIp": "test-invoke-source-ip",
+  "userAgent": "Apache-HttpClient/4.3.4 (java 1.5)",
+  "caller": "AIDAJJMZ5ZCBYPW45NZRC",
+  "body": "{}",
+  "queryParams": {
+    "query": "MEMBER_SEARCH",
+    "handle": "albert",
+    "limit": 10,
+    "offset": 0
   }
 }

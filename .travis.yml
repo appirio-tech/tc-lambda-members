@@ -1,0 +1,42 @@
+language: node_js
+node_js:
+- "0.10.36"
+install:
+- npm install
+before_script:
+  - chmod +x deploy.sh
+script:
+  - npm test
+sudo: false
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: ./deploy.sh
+  on:
+    branch: dev
+- provider: script
+  skip_cleanup: true
+  script: ./deploy.sh
+  on:
+    branch: release
+- provider: script
+  skip_cleanup: true
+  script: ./deploy.sh
+  on:
+    branch: master
+
+env:
+  matrix:
+    - CXX=g++-4.8
+  global:
+    # DEV_MEMBER_ES_HOST
+    - secure: 
+
+    # DEV_AWS_KEY
+    - secure: 
+    # DEV_AWS_SECRET
+    - secure: 
+    # AWS_LAMBDA_ROLE_ARN
+    - secure: 
+
+
