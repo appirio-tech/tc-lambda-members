@@ -30,13 +30,13 @@ env:
     - CXX=g++-4.8
   global:
     # DEV_MEMBER_ES_HOST
-    - secure: 
+    #- secure: 
 
     # DEV_AWS_KEY
-    - secure: 
+    #- secure: 
     # DEV_AWS_SECRET
-    - secure: 
+    #- secure: 
     # AWS_LAMBDA_ROLE_ARN
-    - secure: 
+    #- secure: 
 
 
