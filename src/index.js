@@ -62,8 +62,8 @@ exports.handler = function(event, context) {
               "query": {
                 "bool": {
                   "should": [
-                    { "match": { "handle.phrase": "albert" } },
-                    { "match": { "handle": "albert" } }
+                    { "match": { "handle.phrase": handle } },
+                    { "match": { "handle": handle } }
                   ]
                 }
               },
@@ -83,7 +83,6 @@ exports.handler = function(event, context) {
             "exclude": ["addresses", "financial", "lastName", "firstName", "email", "otherLangName"]
           }
         }
-        console.log(JSON.stringify(searchQuery, null, 2))
         executeSearch(searchQuery, context)
       }
       break
