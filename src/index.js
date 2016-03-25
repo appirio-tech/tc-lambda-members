@@ -83,7 +83,7 @@ exports.handler = function(event, context) {
           }
         }
 
-        executeSearch(searchQuery, context, callback)
+        executeSearch(searchQuery, context)
       }
       break
 
