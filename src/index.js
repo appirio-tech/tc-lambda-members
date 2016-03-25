@@ -49,8 +49,6 @@ exports.handler = function(event, context) {
         queryType = _.get(event.queryParams, 'query', 'MEMBER_SEARCH'),
         limit = _.get(event.queryParams, 'limit', 11),
         offset = _.get(event.queryParams, 'offset', 0);
-      console.log('Query:', queryType)
-      console.log('Name:', handle)
       if (!queryType || !handle) {
         context.fail(new Error("400_BAD_REQUEST: 'query' & 'handle' are required"));
       } else {
@@ -62,8 +60,8 @@ exports.handler = function(event, context) {
               "query": {
                 "bool": {
                   "should": [
-                    { "match": { "handle.phrase": handle } },
-                    { "match": { "handle": handle } }
+                    { "term": { "handle.phrase": handle } },
+                    { "term": { "handle": handle } }
                   ]
                 }
               },
@@ -80,10 +78,12 @@ exports.handler = function(event, context) {
             }
           },
           "_source": {
+            "include": ["tracks", "competitionCountryCode", "wins", "userId", "handle", "maxRating", "skills.name", "skills.score", "stats", "photoURL", "description"],
             "exclude": ["addresses", "financial", "lastName", "firstName", "email", "otherLangName"]
           }
         }
-        executeSearch(searchQuery, context)
+
+        executeSearch(searchQuery, context, callback)
       }
       break
 
