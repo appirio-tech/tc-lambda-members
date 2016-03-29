@@ -80,7 +80,7 @@ exports.handler = function(event, context) {
             }
           },
           "_source": {
-            "include": ["tracks", "competitionCountryCode", "wins", "userId", "handle", "maxRating", "skills.name", "skills.score", "stats", "photoURL", "description"],
+            "include": ["createdAt", "tracks", "competitionCountryCode", "wins", "userId", "handle", "maxRating", "skills.name", "skills.score", "stats", "photoURL", "description"],
             "exclude": ["addresses", "financial", "lastName", "firstName", "email", "otherLangName"]
           }
         }
