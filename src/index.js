@@ -52,6 +52,8 @@ exports.handler = function(event, context) {
       if (!queryType || !handle) {
         context.fail(new Error("400_BAD_REQUEST: 'query' & 'handle' are required"));
       } else {
+        // make sure handle is lowercase
+        handle = handle.toLowerCase()
         var searchQuery = {
           "from": offset,
           "size": limit,
