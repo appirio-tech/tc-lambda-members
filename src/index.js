@@ -111,7 +111,61 @@ function executeSearch(searchQuery, context) {
     body: searchQuery
   }).then(function(resp) {
     var content = resp.hits.hits.map(function(obj) {
-      return obj._source;
+      var response = obj._source
+
+      // Temporary default values until default values can be set with logstash
+      response.tracks    = response.tracks || []
+      response.skills    = response.skills || []
+      response.wins      = response.wins || 0
+      response.maxRating = response.maxRating || { rating: 0 }
+      response.stats     = response.stats || {
+        COPILOT: {},
+        DESIGN:{
+          wins: 0,
+          mostRecentSubmission:0,
+          challenges: 0,
+          subTracks: [],
+          mostRecentEventDate: 0
+        },
+        DEVELOP: {
+          challenges: 0,
+          mostRecentEventDate: 0,
+          mostRecentSubmission: 0,
+          subtracks: [],
+          wins: 0
+        },
+        DATA_SCIENCE:{
+          wins: 0,
+          challenges: 0,
+          MARATHON_MATCH: {
+            wins: 0,
+            challenges: 0,
+            rank: {
+              maximumRating: 0,
+              rating: 0,
+              avgRank: 0,
+              rank: 0,
+              countryRank: 0,
+              bestRank: 0,
+            },
+            mostRecentEventName: null
+          },
+          SRM:{
+            wins:0,
+            challenges:0,
+            rank:{
+              minimumRating:0,
+              maximumRating:0,
+              rating:0,
+              rank:0,
+              countryRank:0
+            },
+            mostRecentEventName:null
+          }
+        }
+      }
+
+      return response;
     });
     context.succeed(wrapResponse(context, 200, content, resp.hits.total));
   }, function(err) {
