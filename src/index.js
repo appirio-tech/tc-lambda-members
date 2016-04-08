@@ -70,9 +70,15 @@ exports.handler = function(event, context) {
               "filter": {
                 "bool": {
                   "should": [
+                    { "exists": { "field": "photoURL" } },
                     { "exists": { "field": "description" } },
-                    { "exists": { "field": "skills" } },
-                    { "exists": { "field": "photoURL" } }
+                    {
+                      "nested": {
+                        "path": "skills",
+                        "filter": { "exists": { "field": "skills"}},
+                        "_cache": true
+                      }
+                    }
                   ],
                   "must": { "term": { "status": "active" } }
                 }
