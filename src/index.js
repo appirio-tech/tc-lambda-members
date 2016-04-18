@@ -1,7 +1,7 @@
 /** == Imports == */
-var AWS = require('aws-sdk'),
-  _ = require('lodash'),
-  querystring = require('querystring')
+var AWS = require('aws-sdk');
+var _ = require('lodash');
+var querystring = require('querystring');
 
 /*
  * The AWS credentials are picked up from the environment.
@@ -18,7 +18,7 @@ var es = require('elasticsearch').Client({
   apiViersion: '1.5',
   connectionClass: require('http-aws-es'),
   amazonES: {
-    region: "us-east-1",
+    region: 'us-east-1',
     credentials: creds
   }
 });
@@ -31,63 +31,72 @@ exports.handler = function(event, context) {
 
   switch (operation) {
     case 'ADMIN_SEARCH':
-      // validate body and method
+      // Validate body and method
       if (!body.param || !body.method || !body.method.toLowerCase() === 'get') {
-        context.fail(new Error("400_BAD_REQUEST: query is required"));
+        context.fail(new Error('400_BAD_REQUEST: query is required'));
+
       } else {
         var searchQuery = body.param
         searchQuery._source = searchQuery._source || {};
         searchQuery._source.exclude = searchQuery._source.exclude || [];
-        var excludedFields = ["firstName", "lastName", "email", "addresses", "financial"];
+
+        var excludedFields = ['firstName', 'lastName', 'email', 'addresses', 'financial'];
+
         searchQuery._source.exclude = searchQuery._source.exclude.concat(excludedFields);
+
         executeSearch(searchQuery, context)
+
       }
+
       break
+
     case 'MEMBER_SEARCH':
-      // make sure name param was passed is non-empty
-      var handle = _.get(event.queryParams, 'handle', null),
-        queryType = _.get(event.queryParams, 'query', 'MEMBER_SEARCH'),
-        limit = _.get(event.queryParams, 'limit', 11),
-        offset = _.get(event.queryParams, 'offset', 0);
+      // Make sure name param was passed is non-empty
+      var handle = _.get(event.queryParams, 'handle', null);
+      var queryType = _.get(event.queryParams, 'query', 'MEMBER_SEARCH');
+      var limit = _.get(event.queryParams, 'limit', 11);
+      var offset = _.get(event.queryParams, 'offset', 0);
+
       if (!queryType || !handle) {
-        context.fail(new Error("400_BAD_REQUEST: 'query' & 'handle' are required"));
+        context.fail(new Error('400_BAD_REQUEST: \'query\' & \'handle\' are required'));
+
       } else {
-        // make sure handle is lowercase
         handle = handle.toLowerCase()
+
         var searchQuery = {
-          "from": offset,
-          "size": limit,
-          "query": {
-            "filtered": {
-              "query": {
-                "bool": {
-                  "should": [
-                    { "term": { "handle.phrase": handle } },
-                    { "term": { "handle": handle } }
+          from: offset,
+          size: limit,
+          query: {
+            filtered: {
+              query: {
+                bool: {
+                  should: [
+                    { term: { 'handle.phrase': handle } },
+                    { term: { handle: handle } }
                   ]
                 }
               },
-              "filter": {
-                "bool": {
-                  "should": [
-                    { "exists": { "field": "photoURL" } },
-                    { "exists": { "field": "description" } },
+              filter: {
+                bool: {
+                  should: [
+                    { exists: { field: 'photoURL' } },
+                    { exists: { field: 'description' } },
                     {
-                      "nested": {
-                        "path": "skills",
-                        "filter": { "exists": { "field": "skills"}},
-                        "_cache": true
+                      nested: {
+                        path: 'skills',
+                        filter: { exists: { field: 'skills'}},
+                        _cache: true
                       }
                     }
                   ],
-                  "must": { "term": { "status": "active" } }
+                  must: { term: { status: 'active' } }
                 }
               }
             }
           },
-          "_source": {
-            "include": ["createdAt", "tracks", "competitionCountryCode", "wins", "userId", "handle", "maxRating", "skills.name", "skills.score", "stats", "photoURL", "description"],
-            "exclude": ["addresses", "financial", "lastName", "firstName", "email", "otherLangName"]
+          _source: {
+            include: ['createdAt', 'tracks', 'competitionCountryCode', 'wins', 'userId', 'handle', 'maxRating', 'skills.name', 'skills.score', 'stats', 'photoURL', 'description'],
+            exclude: ['addresses', 'financial', 'lastName', 'firstName', 'email', 'otherLangName']
           }
         }
 
@@ -104,7 +113,6 @@ exports.handler = function(event, context) {
  * @brief executes the search query
  */
 function executeSearch(searchQuery, context) {
-  // query es
   es.search({
     index: 'members',
     type: 'profile',
@@ -189,27 +197,22 @@ function wrapResponse(context, status, body, count) {
 
 /**
  * @brief Determine description based on request context
- * 
+ *
  * @param event lambda event obj
  * @param context lambda context
- * 
+ *
  * @return String operation
  */
 function getOperation(event, context) {
   switch (event.httpMethod.toUpperCase()) {
     // case 'POST':
-    //   if (event.resourcePath.endsWith('_search') || event.resourcePath.endsWith('_search/'))
+    //   if (_.endsWith(event.resourcePath, '_search') || _.endsWith(event.resourcePath, '_search/'))
     //     return 'ADMIN_SEARCH'
     case 'GET':
-      if (event.resourcePath.endsWith('_search') || event.resourcePath.endsWith('_search/'))
+      if (_.endsWith(event.resourcePath, '_search') || _.endsWith(event.resourcePath, '_search/'))
         return 'MEMBER_SEARCH'
     default:
       return null
       return null
   }
-}
-
-String.prototype.endsWith = function(str) {
-  var lastIndex = this.lastIndexOf(str);
-  return (lastIndex !== -1) && (lastIndex + str.length === this.length);
 }
