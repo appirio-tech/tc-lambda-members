@@ -16,13 +16,15 @@
     "es6-promise": "^3.1.2",
     "gulp": "^3.9.1",
     "mocha": "^2.4.5",
+    "node-lambda": "^0.7.1",
     "run-sequence": "^1.1.5",
     "sinon": "^1.17.3",
     "sinon-chai": "^2.8.0",
     "tc-lambda-gulp-tasks": "1.0.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha src/**/*.spec.js"
+    "test": "./node_modules/.bin/mocha src/**/*.spec.js",
+    "test-lambda": "./node_modules/.bin/node-lambda run -h src/index.handler -j event.json"
   },
   "author": "",
   "license": "ISC"
