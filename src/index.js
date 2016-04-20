@@ -45,15 +45,15 @@ exports.handler = function(event, context) {
       break
     case 'MEMBER_SEARCH':
       // make sure name param was passed is non-empty
-      var handle = _.get(event.queryParams, 'handle', null),
-        queryType = _.get(event.queryParams, 'query', 'MEMBER_SEARCH'),
-        limit = _.get(event.queryParams, 'limit', 11),
-        offset = _.get(event.queryParams, 'offset', 0);
+      var handle = _.get(event, 'params.querystring.handle', null),
+        queryType = _.get(event, 'params.querystring.param', 'MEMBER_SEARCH'),
+        limit = _.get(event, 'params.querystring.limit', 11),
+        offset = _.get(event, 'params.querystring.offset', 0);
       if (!queryType || !handle) {
         context.fail(new Error("400_BAD_REQUEST: 'query' & 'handle' are required"));
       } else {
         // make sure handle is lowercase
-        handle = handle.toLowerCase()
+        handle = decodeURIComponent(handle.toLowerCase())
         var searchQuery = {
           "from": offset,
           "size": limit,
@@ -196,15 +196,14 @@ function wrapResponse(context, status, body, count) {
  * @return String operation
  */
 function getOperation(event, context) {
-  switch (event.httpMethod.toUpperCase()) {
+  switch (event.context['http-method'].toUpperCase()) {
     // case 'POST':
     //   if (event.resourcePath.endsWith('_search') || event.resourcePath.endsWith('_search/'))
     //     return 'ADMIN_SEARCH'
     case 'GET':
-      if (event.resourcePath.endsWith('_search') || event.resourcePath.endsWith('_search/'))
+      if (event.context['resource-path'].endsWith('_search') || event.context['resource-path'].endsWith('_search/'))
         return 'MEMBER_SEARCH'
     default:
-      return null
       return null
   }
 }
