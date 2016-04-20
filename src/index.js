@@ -70,7 +70,7 @@ exports.handler = function(event, context) {
               "filter": {
                 "bool": {
                   "should": [
-                    { "exists": { "field": "photoUrl" } },
+                    { "exists": { "field": "photoURL" } },
                     { "exists": { "field": "description" } },
                     {
                       "nested": {
@@ -167,6 +167,9 @@ function executeSearch(searchQuery, context) {
 
       return response;
     });
+
+    console.log('Content', JSON.stringify(content, null, 2))
+
     context.succeed(wrapResponse(context, 200, content, resp.hits.total));
   }, function(err) {
     context.fail(new Error(err.message));

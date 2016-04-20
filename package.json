@@ -23,7 +23,8 @@
     "tc-lambda-gulp-tasks": "1.0.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha src/**/*.spec.js"
+    "test": "./node_modules/.bin/mocha src/**/*.spec.js",
+    "test-lambda": "./node_modules/.bin/node-lambda run -h src/index.handler -j event.json"
   },
   "author": "",
   "license": "ISC"
