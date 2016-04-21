@@ -8,7 +8,7 @@ module.exports = {
   region: 'us-east-1',
   handler: 'index.handler',
   functionName: 'tc-members-api',
-  timeout: 5,
+  timeout: 180,
   memorySize: 512
   // eventSource: {}
 }
