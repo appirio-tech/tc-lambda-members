@@ -1,11 +1,47 @@
 /**
  * Add mocks here .. cos well.. just do it..
  */
+var _ = require('lodash')
 var elasticsearch = require('elasticsearch')
 var es = {}
 elasticsearch.Client = function() {
   return es
 }
+var mockEvent = {
+  "body": {},
+  "params": {
+      "path": {},
+      "querystring": {
+          "query": "MEMBER_SEARCH",
+          "handle": "albert",
+    "limit": 10,
+    "offset": 0
+      },
+      "header": {}
+  },
+  "stage-variables": {},
+  "context": {
+    "account-id": "811668436784",
+    "api-id": "bd1cmoh5ag",
+    "api-key": "test-invoke-api-key",
+    "authorizer-principal-id": "",
+    "caller": "AIDAJUYC3TUFF3VEGQ5PQ",
+    "cognito-authentication-provider": "",
+    "cognito-authentication-type": "",
+    "cognito-identity-id": "",
+    "cognito-identity-pool-id": "",
+    "http-method": "GET",
+    "stage": "test-invoke-stage",
+    "source-ip": "test-invoke-source-ip",
+    "user": "AIDAJUYC3TUFF3VEGQ5PQ",
+    "user-agent": "Apache-HttpClient/4.3.4 (java 1.5)",
+    "user-arn": "arn:aws:iam::811668436784:user/nlitwin",
+    "request-id": "test-invoke-request",
+    "resource-id": "m3zey8",
+    "resource-path": "/v3/members/_search"
+  }
+}
+
 require('es6-promise').polyfill();
 
 var chai = require("chai");
@@ -39,23 +75,10 @@ var testLambda = function(event, ctx, resp) {
 describe('When receiving an invalid request', function() {
   var resp = { success: null, error: null };
   const ctx = context()
-  testLambda({
-    "stage": "test-invoke-stage",
-    "requestId": "test-invoke-request",
-    "resourcePath": "/v3/members/_search",
-    "resourceId": "dxtdde",
-    "httpMethod": "GET",
-    "sourceIp": "test-invoke-source-ip",
-    "userAgent": "Apache-HttpClient/4.3.4 (java 1.5)",
-    "caller": "AIDAJJMZ5ZCBYPW45NZRC",
-    "body": "{}",
-    "queryParams": {
-      "query": 'MEMBER_SEARCH',
-      "handle": "",
-      "limit": 10,
-      "offset": 0
-    }
-  }, ctx, resp)
+  var myMock = _.cloneDeep(mockEvent)
+  myMock.params.querystring.handle = ""
+  
+  testLambda(myMock, ctx, resp)
 
   describe('then response object ', function() {
     it('should be an error object', function() {
@@ -127,23 +150,7 @@ describe('When receiving a valid search request', function() {
       }
     })
   }
-  testLambda({
-    "stage": "test-invoke-stage",
-    "requestId": "test-invoke-request",
-    "resourcePath": "/v3/members/_search",
-    "resourceId": "dxtdde",
-    "httpMethod": "GET",
-    "sourceIp": "test-invoke-source-ip",
-    "userAgent": "Apache-HttpClient/4.3.4 (java 1.5)",
-    "caller": "AIDAJJMZ5ZCBYPW45NZRC",
-    "body": "{}",
-    "queryParams": {
-      "query": 'MEMBER_SEARCH',
-      "handle": "albert",
-      "limit": 10,
-      "offset": 0
-    }
-  }, ctx, resp)
+  testLambda(mockEvent, ctx, resp)
 
   describe('then success response ', function() {
     var spy = sinon.spy(es, 'search')
