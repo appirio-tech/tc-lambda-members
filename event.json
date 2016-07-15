@@ -1,34 +1,49 @@
 {
-  "body": {},
-  "params": {
-      "path": {},
-      "querystring": {
-          "query": "MEMBER_SEARCH",
-          "handle": "%271%27=%271%27",
-    "limit": 10,
-    "offset": 0
-      },
-      "header": {}
-  },
-  "stage-variables": {},
-  "context": {
-    "account-id": "811668436784",
-    "api-id": "bd1cmoh5ag",
-    "api-key": "test-invoke-api-key",
-    "authorizer-principal-id": "",
-    "caller": "AIDAJUYC3TUFF3VEGQ5PQ",
-    "cognito-authentication-provider": "",
-    "cognito-authentication-type": "",
-    "cognito-identity-id": "",
-    "cognito-identity-pool-id": "",
-    "http-method": "GET",
-    "stage": "test-invoke-stage",
-    "source-ip": "test-invoke-source-ip",
-    "user": "AIDAJUYC3TUFF3VEGQ5PQ",
-    "user-agent": "Apache-HttpClient/4.3.4 (java 1.5)",
-    "user-arn": "arn:aws:iam::811668436784:user/nlitwin",
-    "request-id": "test-invoke-request",
-    "resource-id": "m3zey8",
-    "resource-path": "/v3/members/_search"
-  }
+    "body": {},
+    "params": {
+        "path": {},
+        "querystring": {
+            "handle": "albert",
+            "limit": "10",
+            "offset": "0",
+            "query": "MEMBER_SEARCH"
+        },
+        "header": {
+            "Accept": "*%2F*",
+            "Accept-Encoding": "gzip%2C+deflate%2C+sdch%2C+br",
+            "Accept-Language": "en-US%2Cen%3Bq%3D0.8",
+            "CloudFront-Forwarded-Proto": "https",
+            "CloudFront-Viewer-Country": "US",
+            "Host": "internal-api.topcoder-dev.com",
+            "Origin": "https%3A%2F%2Fwww.topcoder-dev.com",
+            "Referer": "https%3A%2F%2Fwww.topcoder-dev.com%2Fsearch%2Fmembers%2F%3Fq%3Dalbert",
+            "User-Agent": "Mozilla%2F5.0+%28Macintosh%3B+Intel+Mac+OS+X+10_11_5%29+AppleWebKit%2F537.36+%28KHTML%2C+like+Gecko%29+Chrome%2F51.0.2704.103+Safari%2F537.36",
+            "Via": "1.1+3711209710286c6c954f8418c2d0a852.cloudfront.net+%28CloudFront%29",
+            "X-Amz-Cf-Id": "MTtIVsvgQ98uzUrUb1-EqvQU08K88I27E7AULnwODM__xuBe5c3Otg%3D%3D",
+            "X-Forwarded-For": "52.21.65.101%2C+54.239.145.86",
+            "X-Forwarded-Port": "443",
+            "X-Forwarded-Proto": "https"
+        }
+    },
+    "stage-variables": {},
+    "context": {
+        "account-id": "",
+        "api-id": "bd1cmoh5ag",
+        "api-key": "",
+        "authorizer-principal-id": "",
+        "caller": "",
+        "cognito-authentication-provider": "",
+        "cognito-authentication-type": "",
+        "cognito-identity-id": "",
+        "cognito-identity-pool-id": "",
+        "http-method": "GET",
+        "stage": "dev",
+        "source-ip": "52.21.65.101",
+        "user": "",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+        "user-arn": "",
+        "request-id": "6037542d-4aba-11e6-80e9-01ababcc3c56",
+        "resource-id": "s4tezq",
+        "resource-path": "/v3/members/_search"
+    }
 }

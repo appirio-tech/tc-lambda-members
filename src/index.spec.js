@@ -51,8 +51,8 @@ chai.use(require('sinon-chai'));
 const context = require('aws-lambda-mock-context');
 
 var testLambda = function(event, ctx, resp) {
-  // Fires once for the group of tests, done is mocha's callback to 
-  // let it know that an   async operation has completed before running the rest 
+  // Fires once for the group of tests, done is mocha's callback to
+  // let it know that an   async operation has completed before running the rest
   // of the tests, 2000ms is the default timeout though
   before(function(done) {
     //This fires the event as if a Lambda call was being sent in
@@ -75,7 +75,7 @@ describe('When receiving an invalid request', function() {
   const ctx = context()
   var myMock = _.cloneDeep(mockEvent)
   myMock.params.querystring.handle = ""
-  
+
   testLambda(myMock, ctx, resp)
 
   describe('then response object ', function() {

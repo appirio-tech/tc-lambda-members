@@ -1,6 +1,7 @@
 /** == Imports == */
 var AWS = require('aws-sdk'),
   _ = require('lodash'),
+  jwt = require('jsonwebtoken'),
   querystring = require('querystring')
 
 /*
@@ -23,34 +24,62 @@ var es = require('elasticsearch').Client({
   }
 });
 
-exports.handler = function(event, context) {
+exports.handler = function(event, context, callback) {
   console.log('Received event:', JSON.stringify(event, null, 2));
 
   var operation = getOperation(event, context)
   var body = event.body;
 
   switch (operation) {
-    case 'ADMIN_SEARCH':
-      // validate body and method
-      if (!body.param || !body.method || !body.method.toLowerCase() === 'get') {
-        context.fail(new Error("400_BAD_REQUEST: query is required"));
-      } else {
-        var searchQuery = body.param
-        searchQuery._source = searchQuery._source || {};
-        searchQuery._source.exclude = searchQuery._source.exclude || [];
-        var excludedFields = ["firstName", "lastName", "email", "addresses", "financial"];
-        searchQuery._source.exclude = searchQuery._source.exclude.concat(excludedFields);
-        executeSearch(searchQuery, context)
+    case 'SEARCH':
+      var queryString = decodeURIComponent(event.params.querystring.query || '*')
+        // convert + to space -
+      queryString = queryString.replace(/\+/g, ' ')
+
+      var excludedFields = ["addresses", "financial", "lastName", "firstName", "email", "otherLangName"]
+        // allow certain fields only if user is admin
+      var token = _.get(event.params.header, 'Authorization', '').split(' ')
+      if (token.length === 2 && isAdmin(token[1])) {
+        excludedFields = _.without(excludedFields, 'lastName', 'firstName', 'email')
       }
+
+      // construct the query
+      var searchQuery = {
+        query: {
+          filtered: {
+            query: {
+              query_string: {
+                query: queryString
+                  // fields: ["createdAt", "tracks", "competitionCountryCode", "wins", "userId", "handle", "maxRating", "photoURL"],
+              }
+            }
+          }
+        },
+        _source: {
+          "exclude": excludedFields
+        },
+        from: _.get(event, 'params.querystring.offset', 0),
+        size: _.get(event, 'params.querystring.limit',50)
+      };
+      // add status filter
+      if (event.params.querystring.status) {
+        searchQuery.query.filtered.filter = {
+          term: {
+            status: event.params.querystring.status.toLowerCase()
+          }
+        };
+      }
+      executeSearch(searchQuery, context, callback)
       break
     case 'MEMBER_SEARCH':
-      // make sure name param was passed is non-empty
+      console.log('Invoking member search query')
+        // make sure name param was passed is non-empty
       var handle = _.get(event, 'params.querystring.handle', null),
-        queryType = _.get(event, 'params.querystring.param', 'MEMBER_SEARCH'),
+        queryType = _.get(event, 'params.querystring.query', 'MEMBER_SEARCH'),
         limit = _.get(event, 'params.querystring.limit', 11),
         offset = _.get(event, 'params.querystring.offset', 0);
       if (!queryType || !handle) {
-        context.fail(new Error("400_BAD_REQUEST: 'query' & 'handle' are required"));
+        callback(new Error("400_BAD_REQUEST: 'query' & 'handle' are required"));
       } else {
         // make sure handle is lowercase
         handle = decodeURIComponent(handle.toLowerCase())
@@ -61,26 +90,43 @@ exports.handler = function(event, context) {
             "filtered": {
               "query": {
                 "bool": {
-                  "should": [
-                    { "term": { "handle.phrase": handle } },
-                    { "term": { "handle": handle } }
-                  ]
+                  "should": [{
+                    "term": {
+                      "handle.phrase": handle
+                    }
+                  }, {
+                    "term": {
+                      "handle": handle
+                    }
+                  }]
                 }
               },
               "filter": {
                 "bool": {
-                  "should": [
-                    { "exists": { "field": "photoURL" } },
-                    { "exists": { "field": "description" } },
-                    {
-                      "nested": {
-                        "path": "skills",
-                        "filter": { "exists": { "field": "skills"}},
-                        "_cache": true
-                      }
+                  "should": [{
+                    "exists": {
+                      "field": "photoURL"
                     }
-                  ],
-                  "must": { "term": { "status": "active" } }
+                  }, {
+                    "exists": {
+                      "field": "description"
+                    }
+                  }, {
+                    "nested": {
+                      "path": "skills",
+                      "filter": {
+                        "exists": {
+                          "field": "skills"
+                        }
+                      },
+                      "_cache": true
+                    }
+                  }],
+                  "must": {
+                    "term": {
+                      "status": "active"
+                    }
+                  }
                 }
               }
             }
@@ -91,19 +137,19 @@ exports.handler = function(event, context) {
           }
         }
 
-        executeSearch(searchQuery, context)
+        executeSearch(searchQuery, context, callback)
       }
       break
 
     default:
-      context.fail(new Error('Unrecognized operation "' + operation + '"'));
+      callback(new Error('Unrecognized operation "' + operation + '"'));
   }
 };
 
 /**
  * @brief executes the search query
  */
-function executeSearch(searchQuery, context) {
+function executeSearch(searchQuery, context, callback) {
   // query es
   es.search({
     index: 'members',
@@ -114,15 +160,17 @@ function executeSearch(searchQuery, context) {
       var response = obj._source
 
       // Temporary default values until default values can be set with logstash
-      response.tracks    = response.tracks || []
-      response.skills    = response.skills || []
-      response.wins      = response.wins || 0
-      response.maxRating = response.maxRating || { rating: 0 }
-      response.stats     = response.stats || {
+      response.tracks = response.tracks || []
+      response.skills = response.skills || []
+      response.wins = response.wins || 0
+      response.maxRating = response.maxRating || {
+        rating: 0
+      }
+      response.stats = response.stats || {
         COPILOT: {},
-        DESIGN:{
+        DESIGN: {
           wins: 0,
-          mostRecentSubmission:0,
+          mostRecentSubmission: 0,
           challenges: 0,
           subTracks: [],
           mostRecentEventDate: 0
@@ -134,7 +182,7 @@ function executeSearch(searchQuery, context) {
           subtracks: [],
           wins: 0
         },
-        DATA_SCIENCE:{
+        DATA_SCIENCE: {
           wins: 0,
           challenges: 0,
           MARATHON_MATCH: {
@@ -150,17 +198,17 @@ function executeSearch(searchQuery, context) {
             },
             mostRecentEventName: null
           },
-          SRM:{
-            wins:0,
-            challenges:0,
-            rank:{
-              minimumRating:0,
-              maximumRating:0,
-              rating:0,
-              rank:0,
-              countryRank:0
+          SRM: {
+            wins: 0,
+            challenges: 0,
+            rank: {
+              minimumRating: 0,
+              maximumRating: 0,
+              rating: 0,
+              rank: 0,
+              countryRank: 0
             },
-            mostRecentEventName:null
+            mostRecentEventName: null
           }
         }
       }
@@ -170,9 +218,9 @@ function executeSearch(searchQuery, context) {
 
     console.log('Content', JSON.stringify(content, null, 2))
 
-    context.succeed(wrapResponse(context, 200, content, resp.hits.total));
+    callback(null, wrapResponse(context, 200, content, resp.hits.total));
   }, function(err) {
-    context.fail(new Error(err.message));
+    callback(new Error(err.message));
   })
 }
 
@@ -190,22 +238,33 @@ function wrapResponse(context, status, body, count) {
   }
 }
 
+
+/**
+ * verify that an admin is making this call
+ */
+function isAdmin(token) {
+  if (!token)
+    return false
+  var decoded = jwt.decode(token)
+  return _.indexOf(decoded.roles, 'administrator') > -1
+}
+
+
 /**
  * @brief Determine description based on request context
- * 
+ *
  * @param event lambda event obj
  * @param context lambda context
- * 
+ *
  * @return String operation
  */
 function getOperation(event, context) {
   switch (event.context['http-method'].toUpperCase()) {
-    // case 'POST':
-    //   if (event.resourcePath.endsWith('_search') || event.resourcePath.endsWith('_search/'))
-    //     return 'ADMIN_SEARCH'
     case 'GET':
-      if (event.context['resource-path'].endsWith('_search') || event.context['resource-path'].endsWith('_search/'))
-        return 'MEMBER_SEARCH'
+      if (event.context['resource-path'].endsWith('_search') || event.context['resource-path'].endsWith('_search/')) {
+        return _.get(event.params, 'querystring.query', '') === 'MEMBER_SEARCH' ? 'MEMBER_SEARCH' : 'SEARCH'
+      }
+      return null
     default:
       return null
   }
