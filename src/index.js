@@ -35,12 +35,15 @@ exports.handler = function(event, context, callback) {
       var queryString = decodeURIComponent(event.params.querystring.query || '*')
         // convert + to space -
       queryString = queryString.replace(/\+/g, ' ')
-
-      var excludedFields = ["addresses", "financial", "lastName", "firstName", "email", "otherLangName"]
+      var fields = decodeURIComponent(event.params.querystring.fields || null)
+      if (fields) {
+        fields = fields.split(',')
+      }
+      var excludedFields = ['addresses', 'stats', 'financial', 'email', 'otherLangName']
         // allow certain fields only if user is admin
       var token = _.get(event.params.header, 'Authorization', '').split(' ')
       if (token.length === 2 && isAdmin(token[1])) {
-        excludedFields = _.without(excludedFields, 'lastName', 'firstName', 'email')
+        excludedFields = _.without(excludedFields, 'email')
       }
 
       // construct the query
@@ -50,7 +53,6 @@ exports.handler = function(event, context, callback) {
             query: {
               query_string: {
                 query: queryString
-                  // fields: ["createdAt", "tracks", "competitionCountryCode", "wins", "userId", "handle", "maxRating", "photoURL"],
               }
             }
           }
@@ -60,14 +62,17 @@ exports.handler = function(event, context, callback) {
         },
         from: _.get(event, 'params.querystring.offset', 0),
         size: _.get(event, 'params.querystring.limit',50)
-      };
+      }
+      if (fields.length) {
+        searchQuery['_source']['include'] = fields
+      }
       // add status filter
       if (event.params.querystring.status) {
         searchQuery.query.filtered.filter = {
           term: {
             status: event.params.querystring.status.toLowerCase()
           }
-        };
+        }
       }
       executeSearch(searchQuery, context, callback)
       break
@@ -158,61 +163,68 @@ function executeSearch(searchQuery, context, callback) {
   }).then(function(resp) {
     var content = resp.hits.hits.map(function(obj) {
       var response = obj._source
-
+      var fields = _.get(searchQuery, "_source.include", ['skills', 'stats', 'tracks', 'wins', 'maxRating'])
       // Temporary default values until default values can be set with logstash
-      response.tracks = response.tracks || []
-      response.skills = response.skills || []
-      response.wins = response.wins || 0
-      response.maxRating = response.maxRating || {
-        rating: 0
+      if (_.indexOf(fields, 'tracks') > -1) {
+        response.tracks = response.tracks || []
       }
-      response.stats = response.stats || {
-        COPILOT: {},
-        DESIGN: {
-          wins: 0,
-          mostRecentSubmission: 0,
-          challenges: 0,
-          subTracks: [],
-          mostRecentEventDate: 0
-        },
-        DEVELOP: {
-          challenges: 0,
-          mostRecentEventDate: 0,
-          mostRecentSubmission: 0,
-          subtracks: [],
-          wins: 0
-        },
-        DATA_SCIENCE: {
-          wins: 0,
-          challenges: 0,
-          MARATHON_MATCH: {
+      if (_.indexOf(fields, 'skills') > -1) {
+        response.skills = response.skills || []
+      }
+      if (_.indexOf(fields, 'wins') > -1) {
+        response.wins = response.wins || 0
+      }
+      if (_.indexOf(fields, 'maxRating') > -1) {
+        response.maxRating = response.maxRating || { rating: 0 }
+      }
+      if (_.indexOf(fields, 'stats') > -1) {
+        response.stats = response.stats || {
+          COPILOT: {},
+          DESIGN: {
             wins: 0,
+            mostRecentSubmission: 0,
             challenges: 0,
-            rank: {
-              maximumRating: 0,
-              rating: 0,
-              avgRank: 0,
-              rank: 0,
-              countryRank: 0,
-              bestRank: 0,
-            },
-            mostRecentEventName: null
+            subTracks: [],
+            mostRecentEventDate: 0
           },
-          SRM: {
+          DEVELOP: {
+            challenges: 0,
+            mostRecentEventDate: 0,
+            mostRecentSubmission: 0,
+            subtracks: [],
+            wins: 0
+          },
+          DATA_SCIENCE: {
             wins: 0,
             challenges: 0,
-            rank: {
-              minimumRating: 0,
-              maximumRating: 0,
-              rating: 0,
-              rank: 0,
-              countryRank: 0
+            MARATHON_MATCH: {
+              wins: 0,
+              challenges: 0,
+              rank: {
+                maximumRating: 0,
+                rating: 0,
+                avgRank: 0,
+                rank: 0,
+                countryRank: 0,
+                bestRank: 0,
+              },
+              mostRecentEventName: null
             },
-            mostRecentEventName: null
+            SRM: {
+              wins: 0,
+              challenges: 0,
+              rank: {
+                minimumRating: 0,
+                maximumRating: 0,
+                rating: 0,
+                rank: 0,
+                countryRank: 0
+              },
+              mostRecentEventName: null
+            }
           }
         }
       }
-
       return response;
     });
 

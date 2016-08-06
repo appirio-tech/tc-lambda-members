@@ -1,3 +1,5 @@
 .env
 deploy.env
 node_modules/
+dist/
+dist.zip

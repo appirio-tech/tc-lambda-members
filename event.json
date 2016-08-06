@@ -3,10 +3,8 @@
     "params": {
         "path": {},
         "querystring": {
-            "handle": "albert",
-            "limit": "10",
-            "offset": "0",
-            "query": "MEMBER_SEARCH"
+          "query": "userId:8544935 OR userId:40135978",
+          "fields": "userId,handle,photoURL"
         },
         "header": {
             "Accept": "*%2F*",
