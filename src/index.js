@@ -35,10 +35,11 @@ exports.handler = function(event, context, callback) {
       var queryString = decodeURIComponent(event.params.querystring.query || '*')
         // convert + to space -
       queryString = queryString.replace(/\+/g, ' ')
-      var fields = decodeURIComponent(event.params.querystring.fields || null)
+      var fields = _.get(event.params, 'querystring.fields', null)
       if (fields) {
-        fields = fields.split(',')
+        fields = decodeURIComponent(fields).split(',')
       }
+      console.log('fields', fields, fields === null)
       var excludedFields = ['addresses', 'stats', 'financial', 'email', 'otherLangName']
         // allow certain fields only if user is admin
       var token = _.get(event.params.header, 'Authorization', '').split(' ')
@@ -63,7 +64,7 @@ exports.handler = function(event, context, callback) {
         from: _.get(event, 'params.querystring.offset', 0),
         size: _.get(event, 'params.querystring.limit',50)
       }
-      if (fields.length) {
+      if (fields) {
         searchQuery['_source']['include'] = fields
       }
       // add status filter
